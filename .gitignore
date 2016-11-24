@@ -1,0 +1,12 @@
+.DS_Store
+bin-release
+bin-debug
+*.iml
+node_modules
+dist/*
+build
+
+*.orig
+
+sandbox/*
+!sandbox/*.example

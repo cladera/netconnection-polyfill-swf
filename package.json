@@ -1,0 +1,27 @@
+{
+  "name": "netconnection-polyfill-swf",
+  "version": "0.0.1",
+  "description": "Flash library required by netconnection-polyfill",
+  "main": "dist/netconnection-polyfill.swf",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "polyfill",
+    "swf",
+    "netconnection",
+    "flash"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "async": "^2.1.4",
+    "flex-sdk": "^4.6.0-0",
+    "glob": "^7.1.1",
+    "grunt": "^1.0.1",
+    "grunt-connect": "^0.2.0"
+  }
+}
