@@ -1,6 +1,6 @@
 {
   "name": "netconnection-polyfill-swf",
-  "version": "0.0.1",
+  "version": "1.0.0-alpha.0",
   "description": "Flash library required by netconnection-polyfill",
   "main": "dist/netconnection-polyfill.swf",
   "directories": {
