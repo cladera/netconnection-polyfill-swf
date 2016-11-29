@@ -10,3 +10,5 @@ build
 
 sandbox/*
 !sandbox/*.example
+
+*.log
