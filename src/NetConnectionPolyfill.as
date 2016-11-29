@@ -57,7 +57,7 @@ package {
                 ExternalInterface.addCallback("nc_setClient", onSetClientCalled);
 
             } catch (e:Error) {
-                log("error", e.getStackTrace());
+                log("error", e.message);
             } finally {}
         }
 
@@ -87,7 +87,15 @@ package {
         }
 
         private function onCallCalled(command: String, ... args):void {
-            this._nc.call(command, null, args);
+            try {
+                log('info', 'Calling '+command);
+                var __incomingArgs:* = args as Array;
+                var __newArgs:Array = [command, null].concat(__incomingArgs);
+                var __sanitizedArgs:Array = cleanObject(__newArgs);
+                this._nc.call.apply(this._nc, __sanitizedArgs);
+            } catch (e: Error) {
+                log('error', e.message);
+            }
         }
 
         private function onCloseCalled():void {
@@ -95,7 +103,11 @@ package {
         }
 
         private function onConnectCalled(command:*, ...args):void {
-            this._nc.connect(command, args);
+            log('info', 'Connecting to '+command);
+            var __incomingArgs:* = args as Array;
+            var __newArgs:Array = [command].concat(__incomingArgs);
+            var __sanitizedArgs:Array = cleanObject(__newArgs);
+            this._nc.connect.apply(this._nc, __sanitizedArgs);
         }
 
         private function onSetClientCalled(methods: Array):void {
@@ -108,7 +120,7 @@ package {
                     }
                 }
             } catch (e: Error) {
-                log('error', e.getStackTrace());
+                log('error', e.message);
             }
         }
 
@@ -139,9 +151,9 @@ package {
             }
         }
 
-        private function log(level: String, message: String):void {
+        private function log(level: String, message: *):void {
             if (loaderInfo.parameters.debug != undefined && loaderInfo.parameters.debug == "true") {
-                this.callExternalInterface(_jsLogProxyName, level, message);
+                this.callExternalInterface(_jsLogProxyName, level, cleanObject(message));
             }
         }
 
@@ -154,7 +166,10 @@ package {
             }
         }
 
-        private function cleanObject(o:*):* { 
+        private function cleanObject(o:*):* {
+            if (o == null) {
+                return null;
+            }
             if (o is String) {
                 return o.split("\\").join("\\\\");
             } else if (o is Array) {
