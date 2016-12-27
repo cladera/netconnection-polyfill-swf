@@ -2,6 +2,7 @@ package {
     import flash.display.Sprite;
     import flash.system.Security;
     import flash.net.NetConnection;
+    import flash.net.Responder;
     import flash.external.ExternalInterface;
     import flash.events.Event;
     import flash.events.AsyncErrorEvent
@@ -21,6 +22,7 @@ package {
         private var _jsNetStatusEventProxyName: String = "NetConnection.onNetStatusEvent";
         private var _jsSecurityErrorEventProxyName: String = "NetConnection.onSecurityErrorEvent";
         private var _jsClientCallProxyName: String = "NetConnection.onClientCall";
+        private var _jsClientCallResultProxyName: String = "NetConnection.onClientCallResult";
     
 
         public function NetConnectionPolyfill() {
@@ -86,13 +88,18 @@ package {
             this._nc.addHeader(opeartion, mustUnderstand, param);
         }
 
-        private function onCallCalled(command: String, ... args):void {
+        private function onCallCalled(command: String, handlerId: String, ... args):void {
             try {
-                log('info', 'Calling '+command);
+                log('info', 'Calling command: '+command);
+                var responder: Responder = new Responder(function(result: Object) {
+                    callExternalInterface(_jsClientCallResultProxyName, handlerId, null, cleanObject(result));
+                }, function(error: Object) {
+                    callExternalInterface(_jsClientCallResultProxyName, handlerId, cleanObject(error));
+                });
+                
                 var __incomingArgs:* = args as Array;
-                var __newArgs:Array = [command, null].concat(__incomingArgs);
-                var __sanitizedArgs:Array = cleanObject(__newArgs);
-                this._nc.call.apply(this._nc, __sanitizedArgs);
+                var __newArgs:Array = [command, responder].concat(cleanObject(__incomingArgs));
+                this._nc.call.apply(this._nc, __newArgs);
             } catch (e: Error) {
                 log('error', e.message);
             }
@@ -111,13 +118,20 @@ package {
         }
 
         private function onSetClientCalled(methods: Array):void {
+            var self = this;
             this._nc.client = new Object();
             try {
                 for (var i = 0; i < methods.length; i++) {
                     var method = methods[i];
-                    this._nc.client[method] = function(... args) {
-                        callExternalInterface(_jsClientCallProxyName, method, args);
+                    log('info', 'Creating method '+method);
+                    var createMethod = function(method) {
+                        var m = method;
+                        return function(... args) {
+                            var _incomingArgs:* = args as Array;
+                            callExternalInterface.apply(self, [_jsClientCallProxyName, m].concat(_incomingArgs));
+                        }
                     }
+                    this._nc.client[method] = createMethod(method);
                 }
             } catch (e: Error) {
                 log('error', e.message);
